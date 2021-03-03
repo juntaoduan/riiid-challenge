@@ -60,18 +60,24 @@ class WeightedMultiHeadAttention(tfa.layers.MultiHeadAttention):
                     "mask's last dimension must be equal to the number of elements in 'key'"
                 )
 
-        # Linear transformations
-        query = tf.einsum("...NI , HIO -> ...NHO", query, self.query_kernel)
-        key = tf.einsum("...MI , HIO -> ...MHO", key, self.key_kernel)
-        value = tf.einsum("...MI , HIO -> ...MHO", value, self.value_kernel)
 
+        # there is no need to transform query, we insert a square matrix between query and key
+        # query = tf.einsum("...NI , HIO -> ...NHO", query, self.query_kernel)
+        # key = tf.einsum("...MI , HIO -> ...MHO", key, self.key_kernel)
+        # value = tf.einsum("...MI , HIO -> ...MHO", value, self.value_kernel)
+        # Linear transformation
+        # query = tf.einsum("...NI , HIO -> ...NHO", query, self.query_kernel)
+        query = tf.einsum("...NI , HI -> ...NHI", query, self.query_kernel)
+        key = tf.einsum("...MI , HII -> ...MHI", key, self.key_kernel)
+        value = tf.einsum("...MI , HIO -> ...MHO", value, self.value_kernel)
+        
         # Scale dot-product, doing the division to either query or key
         # instead of their product saves some computation
         depth = tf.constant(self.head_size, dtype=tf.float32)
         query /= tf.sqrt(depth)
 
         # Calculate dot product attention
-        logits = tf.einsum("...NHO,...MHO->...HNM", query, key)
+        logits = tf.einsum("...NHI,...MHI->...HNM", query, key)
 
         # apply mask
         if mask is not None:
