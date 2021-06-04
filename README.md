@@ -1,7 +1,6 @@
 Model description:
 https://www.kaggle.com/c/riiid-test-answer-prediction/discussion/210171
 
-Below you can find an outline of how to reproduce my solution for the "Riiid! Answer Correctness Prediction" competition.
 
 # CODE CONTENTS
 
